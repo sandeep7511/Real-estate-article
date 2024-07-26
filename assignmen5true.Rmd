@@ -1,0 +1,148 @@
+---
+title:  " Analysis of real estate in United states"
+output: html_notebook
+---
+Getting data set
+```{r}
+library(ggplot2)
+library(scales)
+data=read.csv("RealEstateUnitedStates.csv")
+```
+visualising  data
+```{r}
+head(data,5)
+```
+
+```{r}
+str(data)
+```
+```{r}
+summary(data)
+```
+
+```{r}
+colSums(is.na(data))
+#taking out total1
+dfd=subset(data,Home.Size!="Total1")
+
+```
+
+```{r}
+#plotting total avg sales price
+
+ggplot(dfd,aes(Year,Average.Sales.Price,color=Home.Size)) + geom_line()+labs(y="Average Sales Price",title = "How the average sales price increase during the years")
+# Mean income over the years in different regions and US as a whole
+ggplot(dfd,aes(Year, Mean.Income...Current.Dollars,color=Region)) + geom_line()+labs(y= "Avearage income ",title = "How the income progressed within the years")
+ggplot(dfd,aes(Year,Number.of.Households..Thousands.,color=Region)) +geom_point()
+```
+
+```{r}
+dfdec=subset(dfd,Month=="December")
+ds=subset(dfdec,Home.Size=="Single ")
+
+dff=data.frame(matrix(ncol = 5))
+x <- c("Previous Year", "Considered Year","Region","Home size", " change in income over change in average sales")
+colnames(dff) <- x
+uyear=as.numeric( sort(unique(ds$Year)))
+for(i in 2:length(uyear)) {
+  yearc1=uyear[i-1]
+  yearc2=uyear[i]
+  cy1=subset(ds,Year==yearc1)
+  cy2=subset(ds,Year==yearc2)
+  indiff=(cy2$Mean.Income...Current.Dollars-cy1$Mean.Income...Current.Dollars)/cy1$Mean.Income...Current.Dollars
+  sdiff=(cy2$Average.Sales.Price-cy1$Average.Sales.Price)/cy1$Average.Sales.Price
+  csf=(indiff/sdiff)
+   
+ fd=data.frame(cy1$Year,cy2$Year,cy2$Region,cy2$Home.Size,csf)
+   
+   colnames(fd) <- x
+   dff=rbind(dff,fd)
+}
+ggplot(dff,aes(x=`Considered Year`,y=` change in income over change in average sales` ,color=Region)) +geom_line()+ labs(x="considered year", y="Change in income to the change in sales price")
+
+```
+
+
+```{r}
+test=subset(dff,` change in income over change in average sales`>0)
+ggplot(test,aes(x=`Considered Year`,y=` change in income over change in average sales` ,color=Region)) +geom_point()+ labs(x="considered year", y="Change in income to the change in sales price")
+```
+
+
+```{r}
+test2=subset(dff,` change in income over change in average sales`<0)
+ggplot(test2,aes(x=`Considered Year`,y=` change in income over change in average sales` ,color=Region)) +geom_point()+ labs(x="considered year", y="Change in income to the change in sales price")
+```
+
+```{r}
+dus=subset(dfd,Region=="United States")
+duss=subset(dus,Home.Size=="Single ")
+dusdec=subset(duss,Month=="December")
+dfh=data.frame(matrix(ncol = 5))
+x <- c("Previous Year", "Considered Year","Region","Home size", " change in Number of houses to change in Sales Price")
+colnames(dfh) <- x
+for (a in 2:length(uyear)) {
+  years1=uyear[a-1]
+  years2=uyear[a]
+  subus1=subset(dusdec,Year==years1)
+  subus2=subset(dusdec,Year==years2)
+  gc=(subus2$Number.of.Households..Thousands.-subus1$Number.of.Households..Thousands.)/subus1$Number.of.Households..Thousands.
+  sdiff=(subus2$Average.Sales.Price-subus1$Average.Sales.Price)/subus1$Average.Sales.Price
+  hc=sdiff/gc
+  r=round(hc,2)
+  nhd=data.frame(subus1$Year,subus2$Year,subus2$Region,subus2$Home.Size,r)
+  colnames(nhd) <- x
+   dfh=rbind(dfh,nhd)
+
+}
+ggplot(dfh,aes(x=`Considered Year`,y=` change in Number of houses to change in Sales Price`,color=`Home size`))+geom_line()
+```
+```{r}
+m=lm(Number.of.Households..Thousands.~Year,data=duss)
+summary(m)
+
+new_data <- data.frame(Year = c(2035))
+predicted_price <- predict(m, newdata = new_data)
+
+predicted_price
+```
+```{r}
+
+m=lm(Average.Sales.Price~Year,data=duss)
+summary(m)
+
+new_data1<- data.frame(Year=c(2035))
+predicted_price1 <- predict(m, newdata = new_data1)
+predicted_price1
+```
+```{r}
+m=lm(Mean.Income...Current.Dollars~Year,data=duss)
+summary(m)
+
+new_data<- data.frame(Year=c(2035))
+predicted_price3 <- predict(m, newdata = new_data)
+predicted_price3
+```
+
+```{r}
+sc=subset(duss,Year==2022)
+head(nohouse,5)
+```
+
+
+
+```{r}
+
+ggplot(ds,aes(Number.of.Households..Thousands.,Average.Sales.Price,color=Region))+geom_point()+labs(y="Average Sales Price",x="Number of house holds x1000")
+```
+```{r}
+ds=subset(dfd,Home.Size=="Single ")
+ggplot(ds, aes(Mean.Income...Current.Dollars, Average.Sales.Price,color=Region)) +
+  geom_col() +
+  scale_x_continuous(labels = comma)+labs(y="Average Sales Price",x="Mean income")
+
+```
+
+
+
+
